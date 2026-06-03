@@ -50,32 +50,15 @@ export class AutoNoteMoverSettingTab extends PluginSettingTab {
 	}
 
 	add_auto_note_mover_setting(): void {
-		this.containerEl.createEl('h2', { text: 'Auto Note Mover' });
+		new Setting(this.containerEl).setName('Auto Note Organizer').setHeading();
 
-		const descEl = document.createDocumentFragment();
+		const descEl = createFragment();
 
 		new Setting(this.containerEl).setDesc(
-			'Auto Note Mover will automatically move the active notes to their respective folders according to the rules.'
+			'Automatically moves notes to their respective folders based on configurable rules.'
 		);
 
-		/* new Setting(this.containerEl)
-			.setName('Auto Note Mover')
-			.setDesc('Enable or disable the Auto Note Mover.')
-			.addToggle((toggle) => {
-				toggle
-					.setValue(this.plugin.settings.enable_auto_note_mover)
-					.onChange(async (use_new_auto_note_mover) => {
-						this.plugin.settings.enable_auto_note_mover = use_new_auto_note_mover;
-						await this.plugin.saveSettings();
-						this.display();
-					});
-			});
-
-		if (!this.plugin.settings.enable_auto_note_mover) {
-			return;
-		} */
-
-		const triggerDesc = document.createDocumentFragment();
+		const triggerDesc = createFragment();
 		triggerDesc.append(
 			'Choose how the trigger will be activated.',
 			descEl.createEl('br'),
@@ -97,14 +80,14 @@ export class AutoNoteMoverSettingTab extends PluginSettingTab {
 					.addOption('Automatic', 'Automatic')
 					.addOption('Manual', 'Manual')
 					.setValue(this.plugin.settings.trigger_auto_manual)
-					.onChange((value: string) => {
+					.onChange(async (value: string) => {
 						this.plugin.settings.trigger_auto_manual = value;
-						this.plugin.saveData(this.plugin.settings);
+						await this.plugin.saveData(this.plugin.settings);
 						this.display();
 					})
 			);
 
-		const useRegexToCheckForTags = document.createDocumentFragment();
+		const useRegexToCheckForTags = createFragment();
 		useRegexToCheckForTags.append(
 			'If enabled, tags will be checked with regular expressions.',
 			descEl.createEl('br'),
@@ -128,7 +111,7 @@ export class AutoNoteMoverSettingTab extends PluginSettingTab {
 				});
 			});
 
-		const ruleDesc = document.createDocumentFragment();
+		const ruleDesc = createFragment();
 		ruleDesc.append(
 			'1. Set the destination folder.',
 			descEl.createEl('br'),
@@ -149,7 +132,7 @@ export class AutoNoteMoverSettingTab extends PluginSettingTab {
 			descEl.createEl('br'),
 			'1. Attached files will not be moved, but they will still appear in the note.',
 			descEl.createEl('br'),
-			'2. Auto Note Mover will not move notes that have "',
+			'2. Auto Note Organizer will not move notes that have "',
 			descEl.createEl('strong', { text: 'AutoNoteMover: disable' }),
 			'" in the frontmatter.'
 		);
@@ -262,7 +245,7 @@ export class AutoNoteMoverSettingTab extends PluginSettingTab {
 			s.infoEl.remove();
 		});
 
-		const useRegexToCheckForExcludedFolder = document.createDocumentFragment();
+		const useRegexToCheckForExcludedFolder = createFragment();
 		useRegexToCheckForExcludedFolder.append(
 			'If enabled, excluded folder will be checked with regular expressions.'
 		);
@@ -278,7 +261,7 @@ export class AutoNoteMoverSettingTab extends PluginSettingTab {
 				});
 			});
 
-		const excludedFolderDesc = document.createDocumentFragment();
+		const excludedFolderDesc = createFragment();
 		excludedFolderDesc.append(
 			'Notes in the excluded folder will not be moved.',
 			descEl.createEl('br'),
@@ -344,7 +327,7 @@ export class AutoNoteMoverSettingTab extends PluginSettingTab {
 			s.infoEl.remove();
 		});
 
-		const statusBarTriggerIndicatorDesc = document.createDocumentFragment();
+		const statusBarTriggerIndicatorDesc = createFragment();
 		statusBarTriggerIndicatorDesc.append(
 			'The status bar will display [A] if the trigger is Automatic, and [M] for Manual.',
 			descEl.createEl('br'),

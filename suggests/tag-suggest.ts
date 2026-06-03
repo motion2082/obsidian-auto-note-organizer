@@ -1,59 +1,36 @@
-import { App, Plugin, TFile, getAllTags, CachedMetadata, PluginManifest } from 'obsidian';
+import { AbstractInputSuggest, App, getAllTags } from 'obsidian';
 
-import { TextInputSuggest } from './suggest';
+export class TagSuggest extends AbstractInputSuggest<string> {
+	private input: HTMLInputElement;
 
-export class GetAllTagsInTheVault extends Plugin {
-	fileArray: TFile[];
-	fileCache: CachedMetadata[];
-	tagArray: string[][];
-	tagArrayJoin: string;
-	tagArraySplit: string[];
-	tagArrayFilter: string[];
-	tagList: string[];
-
-	constructor(app: App, manifest: PluginManifest) {
-		super(app, manifest);
-		this.fileArray = this.app.vault.getMarkdownFiles();
-		this.fileCache = this.fileArray.map((value) => this.app.metadataCache.getFileCache(value));
-		this.tagArray = this.fileCache.map((value) => getAllTags(value));
-		this.tagArrayJoin = this.tagArray.join();
-		this.tagArraySplit = this.tagArrayJoin.split(',');
-		this.tagArrayFilter = this.tagArraySplit.filter(Boolean);
-		this.tagList = [...new Set(this.tagArrayFilter)];
+	constructor(app: App, input: HTMLInputElement) {
+		super(app, input);
+		this.input = input;
 	}
 
-	pull(): string[] {
-		return this.tagList;
-	}
-}
-
-export class TagSuggest extends TextInputSuggest<string> {
-	manifest: PluginManifest;
-	tagList: GetAllTagsInTheVault;
-	tagMatch: string[];
-	lowerCaseInputStr: string;
-
-	getSuggestions(inputStr: string): string[] {
-		this.tagList = new GetAllTagsInTheVault(this.app, this.manifest);
-		this.tagMatch = [];
-		this.lowerCaseInputStr = inputStr.toLowerCase();
-
-		this.tagList.pull().forEach((Tag: string) => {
-			if (Tag.toLowerCase().contains(this.lowerCaseInputStr)) {
-				this.tagMatch.push(Tag);
+	private getAllVaultTags(): string[] {
+		const tags = new Set<string>();
+		this.app.vault.getMarkdownFiles().forEach((file) => {
+			const cache = this.app.metadataCache.getFileCache(file);
+			if (cache) {
+				getAllTags(cache)?.forEach((tag) => tags.add(tag));
 			}
 		});
-
-		return this.tagMatch;
+		return [...tags].sort();
 	}
 
-	renderSuggestion(Tag: string, el: HTMLElement): void {
-		el.setText(Tag);
+	getSuggestions(inputStr: string): string[] {
+		const lower = inputStr.toLowerCase();
+		return this.getAllVaultTags().filter((tag) => tag.toLowerCase().contains(lower));
 	}
 
-	selectSuggestion(Tag: string): void {
-		this.inputEl.value = Tag;
-		this.inputEl.trigger('input');
+	renderSuggestion(tag: string, el: HTMLElement): void {
+		el.setText(tag);
+	}
+
+	selectSuggestion(tag: string, _evt: MouseEvent | KeyboardEvent): void {
+		this.input.value = tag;
+		this.input.trigger('input');
 		this.close();
 	}
 }

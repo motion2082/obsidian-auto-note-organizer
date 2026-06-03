@@ -30,18 +30,14 @@ const isTFExists = (app: App, path: string, F: typeof TFile | typeof TFolder) =>
 export const fileMove = async (app: App, settingFolder: string, fileFullName: string, file: TFile) => {
 	// Does the destination folder exist?
 	if (!isTFExists(app, settingFolder, TFolder)) {
-		console.error(`[Auto Note Mover] The destination folder "${settingFolder}" does not exist.`);
-		new Notice(`[Auto Note Mover]\n"Error: The destination folder\n"${settingFolder}"\ndoes not exist.`);
+		new Notice(`[Auto Note Organizer]\nError: The destination folder\n"${settingFolder}"\ndoes not exist.`);
 		return;
 	}
 	// Does the file with the same name exist in the destination folder?
 	const newPath = normalizePath(settingFolder + '/' + fileFullName);
 	if (isTFExists(app, newPath, TFile) && newPath !== file.path) {
-		console.error(
-			`[Auto Note Mover] Error: A file with the same name "${fileFullName}" exists at the destination folder.`
-		);
 		new Notice(
-			`[Auto Note Mover]\nError: A file with the same name\n"${fileFullName}"\nexists at the destination folder.`
+			`[Auto Note Organizer]\nError: A file with the same name\n"${fileFullName}"\nexists at the destination folder.`
 		);
 		return;
 	}
@@ -51,8 +47,7 @@ export const fileMove = async (app: App, settingFolder: string, fileFullName: st
 	}
 	// Move file
 	await app.fileManager.renameFile(file, newPath);
-	console.log(`[Auto Note Mover] Moved the note "${fileFullName}" to the "${settingFolder}".`);
-	new Notice(`[Auto Note Mover]\nMoved the note "${fileFullName}"\nto the "${settingFolder}".`);
+	new Notice(`[Auto Note Organizer]\nMoved the note "${fileFullName}"\nto the "${settingFolder}".`);
 };
 
 export const arrayMove = <T>(array: T[], fromIndex: number, toIndex: number): void => {

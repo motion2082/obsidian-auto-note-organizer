@@ -10,7 +10,7 @@ export default class AutoNoteMover extends Plugin {
 		const folderTagPattern = this.settings.folder_tag_pattern;
 		const excludedFolder = this.settings.excluded_folder;
 
-		const fileCheck = (file: TAbstractFile, oldPath?: string, caller?: string) => {
+		const fileCheck = async (file: TAbstractFile, oldPath?: string, caller?: string) => {
 			if (this.settings.trigger_auto_manual !== 'Automatic' && caller !== 'cmd') {
 				return;
 			}
@@ -58,13 +58,13 @@ export default class AutoNoteMover extends Plugin {
 				if (!settingPattern) {
 					if (!this.settings.use_regex_to_check_for_tags) {
 						if (cacheTag.find((e) => e === settingTag)) {
-							fileMove(this.app, settingFolder, fileFullName, file);
+							await fileMove(this.app, settingFolder, fileFullName, file);
 							break;
 						}
 					} else if (this.settings.use_regex_to_check_for_tags) {
 						const regex = new RegExp(settingTag);
 						if (cacheTag.find((e) => regex.test(e))) {
-							fileMove(this.app, settingFolder, fileFullName, file);
+							await fileMove(this.app, settingFolder, fileFullName, file);
 							break;
 						}
 					}
@@ -73,7 +73,7 @@ export default class AutoNoteMover extends Plugin {
 					const regex = new RegExp(settingPattern);
 					const isMatch = regex.test(fileName);
 					if (isMatch) {
-						fileMove(this.app, settingFolder, fileFullName, file);
+						await fileMove(this.app, settingFolder, fileFullName, file);
 						break;
 					}
 				}
@@ -89,22 +89,21 @@ export default class AutoNoteMover extends Plugin {
 		if (this.settings.statusBar_trigger_indicator) {
 			triggerIndicator = this.addStatusBarItem();
 			setIndicator();
-			// TODO: Is there a better way?
 			this.registerDomEvent(window, 'change', setIndicator);
 		}
 
 		this.app.workspace.onLayoutReady(() => {
-			this.registerEvent(this.app.vault.on('create', (file) => fileCheck(file)));
-			this.registerEvent(this.app.metadataCache.on('changed', (file) => fileCheck(file)));
-			this.registerEvent(this.app.vault.on('rename', (file, oldPath) => fileCheck(file, oldPath)));
+			this.registerEvent(this.app.vault.on('create', (file) => { void fileCheck(file); }));
+			this.registerEvent(this.app.metadataCache.on('changed', (file) => { void fileCheck(file); }));
+			this.registerEvent(this.app.vault.on('rename', (file, oldPath) => { void fileCheck(file, oldPath); }));
 		});
 
 		const moveNoteCommand = (view: MarkdownView) => {
 			if (isFmDisable(this.app.metadataCache.getFileCache(view.file))) {
-				new Notice('Auto Note Mover is disabled in the frontmatter.');
+				new Notice('Auto Note Organizer is disabled in the frontmatter.');
 				return;
 			}
-			fileCheck(view.file, undefined, 'cmd');
+			void fileCheck(view.file, undefined, 'cmd');
 		};
 
 		this.addCommand({
@@ -124,15 +123,15 @@ export default class AutoNoteMover extends Plugin {
 		this.addCommand({
 			id: 'Toggle-Auto-Manual',
 			name: 'Toggle Auto-Manual',
-			callback: () => {
+			callback: async () => {
 				if (this.settings.trigger_auto_manual === 'Automatic') {
 					this.settings.trigger_auto_manual = 'Manual';
-					this.saveData(this.settings);
-					new Notice('[Auto Note Mover]\nTrigger is Manual.');
+					await this.saveData(this.settings);
+					new Notice('[Auto Note Organizer]\nTrigger is Manual.');
 				} else if (this.settings.trigger_auto_manual === 'Manual') {
 					this.settings.trigger_auto_manual = 'Automatic';
-					this.saveData(this.settings);
-					new Notice('[Auto Note Mover]\nTrigger is Automatic.');
+					await this.saveData(this.settings);
+					new Notice('[Auto Note Organizer]\nTrigger is Automatic.');
 				}
 				setIndicator();
 			},
